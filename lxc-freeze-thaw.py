@@ -52,8 +52,11 @@ def write_cgroup(lxc_id: str, value: str) -> None:
     cgroup_path.write_text(value)
 
 
-def detect_gpus_from_config(lxc_id: str) -> list[int]:
-    """Parse LXC config to find passthrough GPU indices."""
+def detect_gpus_from_config(lxc_id: str) -> list[int] | None:
+    """Parse LXC config to find passthrough GPU indices.
+    
+    Returns list of GPU indices if found, None if no GPUs configured.
+    """
     config_path = Path(f"/etc/pve/lxc/{lxc_id}.conf")
 
     if not config_path.exists():
@@ -68,13 +71,16 @@ def detect_gpus_from_config(lxc_id: str) -> list[int]:
             gpus.add(int(match.group(1)))
 
     if not gpus:
-        sys.exit(f"ERR: No GPUs found in {config_path}")
+        return None
 
     return sorted(gpus)
 
 
-def parse_gpu_arg(gpu_arg: str, lxc_id: str) -> list[int]:
-    """Parse GPU argument into list of indices."""
+def parse_gpu_arg(gpu_arg: str, lxc_id: str) -> list[int] | None:
+    """Parse GPU argument into list of indices.
+    
+    Returns list of GPU indices, or None if auto-detect finds no GPUs.
+    """
     if gpu_arg == "auto":
         return detect_gpus_from_config(lxc_id)
 
