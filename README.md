@@ -43,6 +43,8 @@ The script includes error handling for cases where:
 # Caveats
 - If the GPU is shared by multiple LXC's, but only one LXC is frozen, the unfrozen LXC's will still have access to the GPU, despite it being in an extremely power-limited state.
 - Not tested and not production-ready! Don't blame me if this script eats your homework or crashes your system. Written for personal use only.
+- This script is hacky on multiple levels. If you can't read it, you shouldn't be comfortable using it.
+- I don't own an AMD card, sorry.
 
 # License
 MIT license. No rights reserved. Go crazy, steal it, I don't care.
