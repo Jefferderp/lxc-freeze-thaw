@@ -15,21 +15,20 @@ If an Nvidia GPU is not specified by the LXC config, it isn't frozen. If the LXC
 For detailed usage info, run `lxc-freeze-thaw.py --help`. Or just read the script, it's pretty short.
 
 # Why?
-Proxmox does not offer native integration (via the GUI, CLI or API) for freezing/thawing an LXC container, despite this being a standard feature of Linux cgroup v2, e.g. via `echo 0 > /sys/fs/cgroup/lxc/148/cgroup.freeze`
+Proxmox does not offer native integration (via the GUI, CLI or API) for freezing/thawing an LXC container, despite this being a standard feature of Linux cgroups v2, e.g. via the command: `echo 1 > /sys/fs/cgroup/lxc/148/cgroup.freeze` Even if Proxmox did support freezing cgroups/LXCs, that behavior would not extend to any attached Nvidia GPUs - and that was the initial goal of this script.
 
-Even if it did support freezing, that behavior would not extend to any attached Nvidia GPUs.
+Additionally, most generative AI softwares don't support true pause/resume features. You're often forced to choose between waiting for task completion, or abandoning progress since the last checkpoint. Linux commands respond gracefully to SIGTERM and SIGCONT, e.g. a long-running ffmpeg job can be suspended and resumed at will. This script is my first attempt at extending this functionality to the GPU.
 
-Problem solved! Necessity is the mother of invention. Especially when your Homelab doubles as a space heater...
+So, problem solved! Necessity is the mother of invention, especially when your Homelab doubles as a space heater...
 
 # How?
-The script works by leveraging Linux cgroup v2 freeze functionality and Nvidia GPU power management. When freezing:
+The script works by leveraging Linux cgroups v2 freeze functionality and Nvidia GPU power management. When freezing:
 
-1. The LXC container is frozen using cgroup v2's `cgroup.freeze` interface
-2. Any attached Nvidia GPUs are put into a low-power state using `nvidia-smi`
+1. The LXC container is frozen using cgroups v2's `cgroup.freeze` interface
+2. Any attached Nvidia GPUs are throttled into a minimum-power state using `nvidia-smi`
 3. The script verifies both operations completed successfully
 
-When thawing:
-
+And when thawing:
 1. The LXC container is thawed
 2. Any attached Nvidia GPUs are returned to full power state
 3. The script verifies both operations completed successfully
@@ -37,13 +36,15 @@ When thawing:
 The script includes error handling for cases where:
 - The LXC container doesn't exist
 - The cgroup freeze file doesn't exist
-- Nvidia GPUs aren't properly detected
+- Nvidia GPUs aren't detected
 - Any operation fails mid-execution
 
 # Caveats
+There are some edge cases to be wary of:
 - If the GPU is shared by multiple LXC's, but only one LXC is frozen, the unfrozen LXC's will still have access to the GPU, despite it being in an extremely power-limited state.
 - Not tested and not production-ready! Don't blame me if this script eats your homework or crashes your system. Written for personal use only.
 - This script is hacky on multiple levels. If you can't read it, you shouldn't be comfortable using it.
+- When invoked in `-ng` mode, bypassing GPU operations, it's still possible to freeze an LXC with an attached GPU. Doing so will "orphan" the GPU, and it will continue calculating until ready for more instructions. Thawing the LXC after that can lead to unexpected behavior and process crashes.
 - I don't own an AMD card, sorry.
 
 # License
