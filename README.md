@@ -15,9 +15,11 @@ If an Nvidia GPU is not specified by the LXC config, it isn't frozen. If the LXC
 For detailed usage info, run `lxc-freeze-thaw.py --help`. Or just read the script, it's pretty short.
 
 # Why?
-Proxmox does not offer native integration (via the GUI, CLI or API) for freezing/thawing an LXC container, despite this being a standard feature of Linux cgroups v2, e.g. via the command: `echo 1 > /sys/fs/cgroup/lxc/148/cgroup.freeze` Even if Proxmox did support freezing cgroups/LXCs, that behavior would not extend to any attached Nvidia GPUs - and that was the initial goal of this script.
+Proxmox does not offer native integration (via the GUI, CLI or API) for freezing/thawing an LXC container, despite this being a standard feature of Linux cgroups v2, e.g. via the command: `echo 1 > /sys/fs/cgroup/lxc/148/cgroup.freeze`. Proxmox *does* support pausing/resuming QEMU VMs, so I felt that feature parity was lacking.
 
-Additionally, most generative AI softwares don't support true pause/resume features. You're often forced to choose between waiting for task completion, or abandoning progress since the last checkpoint. Linux commands respond gracefully to SIGTERM and SIGCONT, e.g. a long-running ffmpeg job can be suspended and resumed at will. This script is my first attempt at extending this functionality to the GPU.
+Now, even if Proxmox *did* support freezing cgroups/LXCs, that behavior still would not extend to any attached Nvidia GPUs - and that was the initial goal of this script.
+
+Additionally, many long-running programs which leverage hardware acceleration do not offer true pause/resume features. You're often forced to choose between waiting for task completion, or abandoning progress since the last checkpoint. Linux commands respond gracefully to SIGTERM and SIGCONT, but hardware acceleration adds significant complexity. This script is my first attempt at extending pause/resume functionality to the GPU by throttling it to a minimum power or idle state.
 
 So, problem solved! Necessity is the mother of invention, especially when your Homelab doubles as a space heater...
 
