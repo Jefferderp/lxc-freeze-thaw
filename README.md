@@ -42,11 +42,12 @@ The script includes error handling for cases where:
 - Any operation fails mid-execution
 
 # Caveats
-There are some edge cases to be wary of:
+There are some sharp edges to be wary of:
+- If an LXC is frozen, any Proxmox backup jobs will stall until the LXC is thawed.
 - If the GPU is shared by multiple LXC's, but only one LXC is frozen, the unfrozen LXC's will still have access to the GPU, despite it being in an extremely power-limited state.
+- When invoked in `-ng` mode, bypassing GPU operations, it's still possible to freeze an LXC with an attached GPU. Doing so will "orphan" the GPU, and it will continue calculating until ready for more instructions. Thawing the LXC after that can lead to unexpected behavior and process crashes.
 - Not tested and not production-ready! Don't blame me if this script eats your homework or crashes your system. Written for personal use only.
 - This script is hacky on multiple levels. If you can't read it, you shouldn't be comfortable using it.
-- When invoked in `-ng` mode, bypassing GPU operations, it's still possible to freeze an LXC with an attached GPU. Doing so will "orphan" the GPU, and it will continue calculating until ready for more instructions. Thawing the LXC after that can lead to unexpected behavior and process crashes.
 - The script includes brief sleep periods before and after performing GPU operations. This is for safety, and not out of necessity, since we always fear the unknown. :)
 - I don't own an AMD card, sorry.
 
